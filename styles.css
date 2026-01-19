@@ -32,7 +32,7 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: gradient-shift 3s ease infinite;
+    animation: gradient-shift 10s ease infinite;
     text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
 }
 
@@ -130,6 +130,14 @@ body {
 .game-footer {
     color: #666;
     font-size: 0.9rem;
+}
+
+.game-footer .goal-text {
+    color: #ff00ff;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8), 0 0 20px rgba(255, 0, 255, 0.5);
+    letter-spacing: 0.1rem;
 }
 
 /* Animations for UI values */

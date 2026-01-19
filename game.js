@@ -155,7 +155,7 @@ class GridAgent {
     // Setup keyboard controls
     setupControls() {
         document.addEventListener('keydown', (e) => {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
                 e.preventDefault();
                 
                 if (!this.gameRunning && !this.gameOver) {
@@ -179,15 +179,19 @@ class GridAgent {
     setDirection(keyCode) {
         switch (keyCode) {
             case 'ArrowUp':
+            case 'KeyW':
                 this.player.nextDirection = { x: 0, y: -1 };
                 break;
             case 'ArrowDown':
+            case 'KeyS':
                 this.player.nextDirection = { x: 0, y: 1 };
                 break;
             case 'ArrowLeft':
+            case 'KeyA':
                 this.player.nextDirection = { x: -1, y: 0 };
                 break;
             case 'ArrowRight':
+            case 'KeyD':
                 this.player.nextDirection = { x: 1, y: 0 };
                 break;
         }
