@@ -40,6 +40,9 @@ class GridAgent {
         this.points = [];
         this.totalPoints = 0;
         
+        // Energy balls (big points in corners)
+        this.energyBalls = [];
+        
         // Grid map (0 = path, 1 = wall)
         this.grid = [];
         
@@ -61,6 +64,7 @@ class GridAgent {
         // Initialize
         this.generateMaze();
         this.spawnPoints();
+        this.spawnEnergyBalls();
         this.spawnAnomalies();
         this.setupControls();
         this.draw();
@@ -112,17 +116,39 @@ class GridAgent {
     // Spawn collectible points on all walkable tiles
     spawnPoints() {
         this.points = [];
+        // Define corner positions for energy balls (to exclude from regular points)
+        const energyBallPositions = [
+            { x: 1, y: 1 },
+            { x: this.cols - 2, y: 1 },
+            { x: 1, y: this.rows - 2 },
+            { x: this.cols - 2, y: this.rows - 2 }
+        ];
+        
         for (let y = 0; y < this.rows; y++) {
             for (let x = 0; x < this.cols; x++) {
                 if (this.grid[y][x] === 0) {
                     // Don't spawn on player start position
                     if (!(x === this.player.x && y === this.player.y)) {
-                        this.points.push({ x, y, collected: false });
+                        // Don't spawn on energy ball positions
+                        const isEnergyBallPos = energyBallPositions.some(pos => pos.x === x && pos.y === y);
+                        if (!isEnergyBallPos) {
+                            this.points.push({ x, y, collected: false });
+                        }
                     }
                 }
             }
         }
         this.totalPoints = this.points.length;
+    }
+    
+    // Spawn energy balls in the four corners
+    spawnEnergyBalls() {
+        this.energyBalls = [
+            { x: 1, y: 1, collected: false },
+            { x: this.cols - 2, y: 1, collected: false },
+            { x: 1, y: this.rows - 2, collected: false },
+            { x: this.cols - 2, y: this.rows - 2, collected: false }
+        ];
     }
     
     // Spawn anomalies (collectible moving targets)
@@ -219,6 +245,7 @@ class GridAgent {
         this.anomalyCount = 6;
         this.generateMaze();
         this.spawnPoints();
+        this.spawnEnergyBalls();
         this.spawnAnomalies();
         
         this.updateUI();
@@ -242,6 +269,7 @@ class GridAgent {
         
         this.generateMaze();
         this.spawnPoints();
+        this.spawnEnergyBalls();
         this.spawnAnomalies();
         
         this.updateUI();
@@ -391,6 +419,16 @@ class GridAgent {
             }
         }
         
+        // Check energy ball collection
+        for (const energyBall of this.energyBalls) {
+            if (!energyBall.collected && energyBall.x === this.player.x && energyBall.y === this.player.y) {
+                energyBall.collected = true;
+                this.score += 100;
+                this.updateUI();
+                this.pulseUI('score');
+            }
+        }
+        
         // Check anomaly collection
         for (let i = this.anomalies.length - 1; i >= 0; i--) {
             const anomaly = this.anomalies[i];
@@ -427,6 +465,9 @@ class GridAgent {
         
         // Draw points
         this.drawPoints();
+        
+        // Draw energy balls
+        this.drawEnergyBalls();
         
         // Draw anomalies
         this.drawAnomalies();
@@ -482,6 +523,49 @@ class GridAgent {
                 this.ctx.beginPath();
                 this.ctx.arc(px, py, 5, 0, Math.PI * 2);
                 this.ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
+                this.ctx.fill();
+            }
+        }
+    }
+    
+    drawEnergyBalls() {
+        const time = performance.now() / 800; // Slow pulse
+        
+        for (const energyBall of this.energyBalls) {
+            if (!energyBall.collected) {
+                const px = energyBall.x * this.cellSize + this.cellSize / 2;
+                const py = energyBall.y * this.cellSize + this.cellSize / 2;
+                const baseSize = 8;
+                const pulseSize = baseSize + Math.sin(time * 3) * 2;
+                
+                // Outer glow
+                this.ctx.beginPath();
+                this.ctx.arc(px, py, pulseSize + 6, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(255, 100, 50, ${0.2 + Math.sin(time * 3) * 0.1})`;
+                this.ctx.fill();
+                
+                // Middle glow
+                this.ctx.beginPath();
+                this.ctx.arc(px, py, pulseSize + 3, 0, Math.PI * 2);
+                this.ctx.fillStyle = 'rgba(255, 150, 50, 0.4)';
+                this.ctx.fill();
+                
+                // Main ball - orange/red color
+                this.ctx.beginPath();
+                this.ctx.arc(px, py, pulseSize, 0, Math.PI * 2);
+                
+                const gradient = this.ctx.createRadialGradient(px - 2, py - 2, 0, px, py, pulseSize);
+                gradient.addColorStop(0, '#ffcc00');
+                gradient.addColorStop(0.5, '#ff6600');
+                gradient.addColorStop(1, '#ff3300');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fill();
+                
+                // Highlight
+                this.ctx.beginPath();
+                this.ctx.arc(px - pulseSize * 0.3, py - pulseSize * 0.3, pulseSize * 0.3, 0, Math.PI * 2);
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                 this.ctx.fill();
             }
         }
